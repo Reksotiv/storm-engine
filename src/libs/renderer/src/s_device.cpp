@@ -2094,8 +2094,6 @@ void DX9RENDER::SetNearFarPlane(float fNear, float fFar)
 
 bool DX9RENDER::SetPerspective(float perspective, float fAspectRatio)
 {
-    perspective *= FovMultiplier;
-
     const float near_plane = fNearClipPlane; // Distance to near clipping
     const float far_plane = fFarClipPlane;   // Distance to far clipping
     const float fov_horiz = perspective;     // Horizontal field of view  angle, in radians
@@ -2104,9 +2102,10 @@ bool DX9RENDER::SetPerspective(float perspective, float fAspectRatio)
         fAspectRatio = static_cast<float>(screen_size.y) / screen_size.x;
     }
     aspectRatio = fAspectRatio;
-    const float fov_vert = perspective * fAspectRatio; // Vertical field of view  angle, in radians
+    // Vertical field of view  angle, in radians
+    const float fov_vert = 2.f * atanf(tanf(perspective * 0.5f * FovMultiplier) * fAspectRatio);
 
-    const float w = 1.0f / tanf(fov_horiz * 0.5f);
+    const float w = 1.0f / tanf(fov_vert * 0.5f) * fAspectRatio;
     const float h = 1.0f / tanf(fov_vert * 0.5f);
     const float Q = far_plane / (far_plane - near_plane);
 
@@ -3227,7 +3226,7 @@ void DX9RENDER::GetCamera(CVECTOR &pos, CVECTOR &ang, float &perspective)
 {
     pos = Pos;
     ang = Ang;
-    perspective = Fov;
+    perspective = Fov * FovMultiplier;
 }
 
 using TGA_H = struct tagTGA_H
